@@ -42,6 +42,10 @@
 
     $(document).ready( function() {
       $(input).after('<br>', $canvas, '<br>', $reset);
+      $reset.click(reset);
+      $canvas.on('mousedown touchstart', mousedown);
+      $canvas.on('contextmenu', rightclick);
+      $canvas.on('mouseup touchend', stopdrag);
     });
 
     reset = function() {
@@ -51,8 +55,13 @@
 
     move = function(e) {
       if(!e.offsetX) {
-        e.offsetX = (e.pageX - $(e.target).offset().left);
-        e.offsetY = (e.pageY - $(e.target).offset().top);
+        if(isNaN(e.pageX) || isNaN(e.pageY)){
+          e.offsetX = (event.targetTouches[0].pageX - $(e.target).offset().left);
+          e.offsetY = (event.targetTouches[0].pageY - $(e.target).offset().top);
+        } else {
+          e.offsetX = (e.pageX - $(e.target).offset().left);
+          e.offsetY = (e.pageY - $(e.target).offset().top);
+        }
       }
       points[activePoint] = Math.round(e.offsetX);
       points[activePoint+1] = Math.round(e.offsetY);
@@ -98,11 +107,16 @@
       }
       x = e.offsetX; y = e.offsetY;
 
+      if(isNaN(x) || isNaN(y)){
+        x = event.targetTouches[0].pageX - $(e.target).offset().left;
+        y = event.targetTouches[0].pageY - $(e.target).offset().top;
+      }
+
       for (var i = 0; i < points.length; i+=2) {
         dis = Math.sqrt(Math.pow(x - points[i], 2) + Math.pow(y - points[i+1], 2));
         if ( dis < 6 ) {
           activePoint = i;
-          $(this).on('mousemove', move);
+          $(this).on('touchmove mousemove', move);
           return false;
         }
       }
@@ -173,11 +187,6 @@
       }
       draw();
     });
-    
-    $(document).find($reset).click(reset);
-    $(document).find($canvas).on('mousedown', mousedown);
-    $(document).find($canvas).on('contextmenu', rightclick);
-    $(document).find($canvas).on('mouseup', stopdrag);
 
   };
 
