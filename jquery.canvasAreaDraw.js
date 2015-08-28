@@ -10,7 +10,7 @@
 
   var init = function(index, input, options) {
 
-    var points, activePoint, settings;
+    var points, activePoint, settings, activeRegion;
     var $reset, $canvas, ctx, image;
     var draw, mousedown, stopdrag, move, resize, reset, rightclick, record;
 
@@ -18,12 +18,17 @@
       imageUrl: $(this).attr('data-image-url')
     }, options);
 
+    activeRegion = 0;
+
     if ( $(this).val().length ) {
+      alert('not implemented');
+      /*
       points = $(this).val().split(',').map(function(point) {
         return parseInt(point, 10);
       });
+      */
     } else {
-      points = [];
+      points = { 0 : [], 1 : [] };
     }
 
     $reset = $('<button type="button" class="btn"><i class="icon-trash"></i>Clear</button>');
@@ -41,6 +46,18 @@
     $canvas.css({background: 'url('+image.src+')'});
 
     $(document).ready( function() {
+      for(region in points){
+        selected = (activeRegion==region) ? ' btn-success' : '';
+        $regionSelect = $('<button type="button" class="btn regionSelect' + selected +'" data-region="' + region + '"><i class="icon-square"></i>Region #' + region + '</button>');
+        $(input).after($regionSelect);
+      }
+      $('button.regionSelect').click(function(){
+        $('button.regionSelect').removeClass('btn-success');
+        $(this).addClass('btn-success');
+        activeRegion = $(this).data('region');
+        alert('Changed to active region #' + activeRegion);
+        activePoint = null;
+      });      
       $(input).after('<br>', $canvas, '<br>', $reset);
       $reset.click(reset);
       $canvas.on('mousedown touchstart', mousedown);
@@ -49,7 +66,7 @@
     });
 
     reset = function() {
-      points = [];
+      points = { 0 : [] };
       draw();
     };
 
@@ -63,8 +80,8 @@
           e.offsetY = (e.pageY - $(e.target).offset().top);
         }
       }
-      points[activePoint] = Math.round(e.offsetX);
-      points[activePoint+1] = Math.round(e.offsetY);
+      points[activeRegion][activePoint] = Math.round(e.offsetX);
+      points[activeRegion][activePoint+1] = Math.round(e.offsetY);
       draw();
     };
 
@@ -81,10 +98,10 @@
         e.offsetY = (e.pageY - $(e.target).offset().top);
       }
       var x = e.offsetX, y = e.offsetY;
-      for (var i = 0; i < points.length; i+=2) {
-        dis = Math.sqrt(Math.pow(x - points[i], 2) + Math.pow(y - points[i+1], 2));
+      for (var i = 0; i < points[activeRegion].length; i+=2) {
+        dis = Math.sqrt(Math.pow(x - points[activeRegion][i], 2) + Math.pow(y - points[activeRegion][i+1], 2));
         if ( dis < 6 ) {
-          points.splice(i, 2);
+          points[activeRegion].splice(i, 2);
           draw();
           record();
           return false;
@@ -94,7 +111,8 @@
     };
 
     mousedown = function(e) {
-      var x, y, dis, lineDis, insertAt = points.length;
+
+      var x, y, dis, lineDis, insertAt = points[activeRegion].length;
 
       if (e.which === 3) {
         return false;
@@ -112,8 +130,8 @@
         y = event.targetTouches[0].pageY - $(e.target).offset().top;
       }
 
-      for (var i = 0; i < points.length; i+=2) {
-        dis = Math.sqrt(Math.pow(x - points[i], 2) + Math.pow(y - points[i+1], 2));
+      for (var i = 0; i < points[activeRegion].length; i+=2) {
+        dis = Math.sqrt(Math.pow(x - points[activeRegion][i], 2) + Math.pow(y - points[activeRegion][i+1], 2));
         if ( dis < 6 ) {
           activePoint = i;
           $(this).on('touchmove mousemove', move);
@@ -121,12 +139,12 @@
         }
       }
 
-      for (var i = 0; i < points.length; i+=2) {
+      for (var i = 0; i < points[activeRegion].length; i+=2) {
         if (i > 1) {
           lineDis = dotLineLength(
             x, y,
-            points[i], points[i+1],
-            points[i-2], points[i-1],
+            points[activeRegion][i], points[activeRegion][i+1],
+            points[activeRegion][i-2], points[activeRegion][i-1],
             true
           );
           if (lineDis < 6) {
@@ -135,7 +153,7 @@
         }
       }
 
-      points.splice(insertAt, 0, Math.round(x), Math.round(y));
+      points[activeRegion].splice(insertAt, 0, Math.round(x), Math.round(y));
       activePoint = insertAt;
       $(this).on('mousemove', move);
 
@@ -149,7 +167,7 @@
       ctx.canvas.width = ctx.canvas.width;
 
       record();
-      if (points.length < 2) {
+      if (points[activeRegion].length < 2) {
         return false;
       }
       ctx.globalCompositeOperation = 'destination-over';
@@ -158,12 +176,12 @@
       ctx.lineWidth = 1;
 
       ctx.beginPath();
-      ctx.moveTo(points[0], points[1]);
-      for (var i = 0; i < points.length; i+=2) {
-        ctx.fillRect(points[i]-2, points[i+1]-2, 4, 4);
-        ctx.strokeRect(points[i]-2, points[i+1]-2, 4, 4);
-        if (points.length > 2 && i > 1) {
-          ctx.lineTo(points[i], points[i+1]);
+      ctx.moveTo(points[activeRegion][0], points[activeRegion][1]);
+      for (var i = 0; i < points[activeRegion].length; i+=2) {
+        ctx.fillRect(points[activeRegion][i]-2, points[activeRegion][i+1]-2, 4, 4);
+        ctx.strokeRect(points[activeRegion][i]-2, points[activeRegion][i+1]-2, 4, 4);
+        if (points[activeRegion].length > 2 && i > 1) {
+          ctx.lineTo(points[activeRegion][i], points[activeRegion][i+1]);
         }
       }
       ctx.closePath();
@@ -173,17 +191,18 @@
 
     };
 
-    record = function() {
-      $(input).val(points.join(','));
+    record = function() { 
+      $(input).val(JSON.stringify(points));
+      /*$(input).val(points[activeRegion].join(','));*/
     };
 
     $(input).on('change', function() {
       if ( $(this).val().length ) {
-        points = $(this).val().split(',').map(function(point) {
+        points[activeRegion] = $(this).val().split(',').map(function(point) {
           return parseInt(point, 10);
         });
       } else {
-        points = [];
+        points[activeRegion] = [];
       }
       draw();
     });
