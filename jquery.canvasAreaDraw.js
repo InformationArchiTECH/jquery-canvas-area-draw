@@ -10,7 +10,7 @@
 
   var init = function(index, input, options) {
 
-    var points, activePoint, settings, activeRegion;
+    var points, activePoint, settings, activeRegion, maxRegion;
     var $reset, $canvas, ctx, image;
     var draw, mousedown, stopdrag, move, resize, reset, rightclick, record;
 
@@ -20,6 +20,7 @@
 
     activeRegion = 0;
 
+    points = {};
     if ( $(this).val().length ) {
       alert('not implemented');
       /*
@@ -27,10 +28,14 @@
         return parseInt(point, 10);
       });
       */
-    } else {
-      points = { 0 : [], 1 : [] };
-    }
+    }/* else {
+      points = { 0 : [] };
+    }*/
+    maxRegion = (-1);
+    for(i in points)
+      maxRegion = i;
 
+    $addRegion = $('<button type="button" class="addRegion btn"><i class="icon-plus"></i>Add Region</button>');
     $reset = $('<button type="button" class="btn"><i class="icon-trash"></i>Clear</button>');
     $canvas = $('<canvas>');
     ctx = $canvas[0].getContext('2d');
@@ -46,24 +51,49 @@
     $canvas.css({background: 'url('+image.src+')'});
 
     $(document).ready( function() {
-      for(region in points){
+      if(maxRegion > (-1)){
+        for(region in points){
+          addRegion(region);
+        }
+      } else {
+        addRegion(0);
+      }
+
+      /*for(region in points){
         selected = (activeRegion==region) ? ' btn-success' : '';
         $regionSelect = $('<button type="button" class="btn regionSelect' + selected +'" data-region="' + region + '"><i class="icon-square"></i>Region #' + region + '</button>');
         $(input).after($regionSelect);
-      }
-      $('button.regionSelect').click(function(){
-        $('button.regionSelect').removeClass('btn-success');
-        $(this).addClass('btn-success');
-        activeRegion = $(this).data('region');
-        alert('Changed to active region #' + activeRegion);
-        activePoint = null;
-      });      
-      $(input).after('<br>', $canvas, '<br>', $reset);
+      }*/
+      
+
+      $(input).after('<br>', $canvas, '<br>', $reset, '<br>', $addRegion);
       $reset.click(reset);
+      $addRegion.click(addRegion);
       $canvas.on('mousedown touchstart', mousedown);
       $canvas.on('contextmenu', rightclick);
       $canvas.on('mouseup touchend', stopdrag);
     });
+
+    addRegion = function() {
+
+      maxRegion++;
+      activeRegion = maxRegion;
+      $('button.regionSelect').removeClass('btn-success');
+      $regionSelect = $('<button type="button" class="btn btn-success regionSelect" data-region="' + maxRegion + '"><i class="icon-square"></i>Region #' + maxRegion + '</button>');
+      $(input).after($regionSelect);
+
+      $regionSelect.on('click',function(){
+        $('button.regionSelect').removeClass('btn-success');
+        $(this).addClass('btn-success');
+        activeRegion = $(this).data('region');
+        activePoint = null;
+        draw();
+      });
+
+      points[maxRegion] = [];
+      draw();
+
+    }
 
     reset = function() {
       points = { 0 : [] };
@@ -153,6 +183,7 @@
         }
       }
 
+
       points[activeRegion].splice(insertAt, 0, Math.round(x), Math.round(y));
       activePoint = insertAt;
       $(this).on('mousemove', move);
@@ -164,30 +195,39 @@
     };
 
     draw = function() {
-      ctx.canvas.width = ctx.canvas.width;
 
       record();
+
       if (points[activeRegion].length < 2) {
         return false;
       }
+
+      ctx.canvas.width = ctx.canvas.width;
+
       ctx.globalCompositeOperation = 'destination-over';
       ctx.fillStyle = 'rgb(255,255,255)'
       ctx.strokeStyle = 'rgb(255,20,20)';
       ctx.lineWidth = 1;
 
-      ctx.beginPath();
-      ctx.moveTo(points[activeRegion][0], points[activeRegion][1]);
-      for (var i = 0; i < points[activeRegion].length; i+=2) {
-        ctx.fillRect(points[activeRegion][i]-2, points[activeRegion][i+1]-2, 4, 4);
-        ctx.strokeRect(points[activeRegion][i]-2, points[activeRegion][i+1]-2, 4, 4);
-        if (points[activeRegion].length > 2 && i > 1) {
-          ctx.lineTo(points[activeRegion][i], points[activeRegion][i+1]);
+      var origActiveRegion = activeRegion;
+      for(i in points){
+        activeRegion = i;
+        ctx.beginPath();
+        ctx.moveTo(points[activeRegion][0], points[activeRegion][1]);
+        for (var i = 0; i < points[activeRegion].length; i+=2) {
+          ctx.fillRect(points[activeRegion][i]-2, points[activeRegion][i+1]-2, 4, 4);
+          ctx.strokeRect(points[activeRegion][i]-2, points[activeRegion][i+1]-2, 4, 4);
+          if (points[activeRegion].length > 2 && i > 1) {
+            ctx.lineTo(points[activeRegion][i], points[activeRegion][i+1]);
+          }
         }
+        ctx.closePath();
+        ctx.fillStyle = 'rgba(255,0,0,0.3)';
+        if(activeRegion==origActiveRegion)
+          ctx.fill();
+        ctx.stroke();
       }
-      ctx.closePath();
-      ctx.fillStyle = 'rgba(255,0,0,0.3)';
-      ctx.fill();
-      ctx.stroke();
+      activeRegion = origActiveRegion;
 
     };
 
