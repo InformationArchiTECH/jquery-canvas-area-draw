@@ -8,7 +8,7 @@ on which points may be added to create a polygon.
 Activates inputs with class `canvas-area` and data attribute
 `data-image-url`. Or activate with `$('input').canvasAreaDraw(options)`
 
-Demo at [http://www.informationarchitech.com/clients/jquery-canvas-area-draw/demo.html]
+Demo at [http://iakob.com/canvas-area-draw/demo.html]
 
 ### Examples
 

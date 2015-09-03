@@ -6,8 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Canvas Area Draw</title>
     <link href="assets/bootstrap.no-icons.min.css" rel="stylesheet">
-    <link href="assets/font-awesome.css" rel="stylesheet">
-    <link href="assets/font-awesome-ie7.css" rel="stylesheet">
   </head>
   <body>
     <div id="main" class="container">
@@ -15,9 +13,26 @@
     <form>
     <div class="row">
       <div class="span6">
-
-      <textarea rows=3 name="coords1" class="canvas-area input-xxlarge" disabled 
-        placeholder="Shape Coordinates" data-image-url="assets/6956772778_2fa755a228.jpg"></textarea>
+        <textarea id="example"></textarea>
+      </div>
+      <div class="span6">
+        <div class="well">
+          <h2>Controls</h2>
+          <div class="controls">
+            <ul>
+              <li><a href="#" class="addRegion">Add Region</a></li>
+              <li><a href="#" id="resetExample">Reset</a></li>
+            </ul>
+          </div>          
+        </div>
+        <div class="well">
+          <h2>Regions</h2>
+          <div id="regionsExample">
+          </div>
+          <div id="noRegionsExample">
+            <p>You have not yet created any regions. [<a class="addRegion" href="#">Add Region</a>]</p>
+          </div>
+        </div>
       </div>
     </div>
     </form>
@@ -26,5 +41,24 @@
     <script language="javascript" src="assets/json2.js"></script>
     <script src="assets/bootstrap.min.js"></script>
     <script language="javascript" src="jquery.canvasAreaDraw.js"></script>
+    <script>
+    $(document).ready(function(){
+      var $test = $('textarea#example').canvasAreaDraw({
+        imageUrl: "assets/6956772778_2fa755a228.jpg",
+        sensitivity: 24,
+        rectWidth: 4,
+        lineWidth: 1,
+        resetSelector: 'a#resetExample',
+        addRegionSelector: 'a.addRegion',
+        regionsSelector: 'div#regionsExample',
+        noRegionsSelector: 'div#noRegionsExample',
+        initialRegions: 0,
+        regionButtonCallback: function(region_id) {
+          return '<a href="#">Region #1.' + region_id + '</a>';
+        }
+      });
+      $test.test();
+    });
+    </script>
   </body>
 </html>
