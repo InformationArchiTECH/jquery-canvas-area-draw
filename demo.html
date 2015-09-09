@@ -5,60 +5,156 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Canvas Area Draw</title>
-    <link href="assets/bootstrap.no-icons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css">
   </head>
   <body>
     <div id="main" class="container">
     <h1>Image Maps Canvas Drawing</h1>
     <form>
-    <div class="row">
-      <div class="span6">
-        <textarea id="example"></textarea>
-      </div>
-      <div class="span6">
-        <div class="well">
-          <h2>Controls</h2>
-          <div class="controls">
-            <ul>
-              <li><a href="#" class="addRegion">Add Region</a></li>
-              <li><a href="#" id="resetExample">Reset</a></li>
-            </ul>
-          </div>          
+      <div class="row">
+        <div class="col-md-6">
+          <textarea id="example">{"points":{"0":[126,209,124,139,232,145,211,239],"1":[156,314,152,376,272,386,273,317],"2":[77,63,81,101,173,97,183,50]},"metadata":{"0":{"color":"#FF0000"},"1":{"color":"#ADFF2F"},"2":{"color":"#9400D3"}}}</textarea>
         </div>
-        <div class="well">
-          <h2>Regions</h2>
-          <div id="regionsExample">
+        <div class="col-md-6">
+          <div class="well">
+            <h2>Controls</h2>
+            <div class="controls">
+              <ul>
+                <li><a href="#" class="addRegion">Add Region</a></li>
+                <li><a href="#" id="resetExample">Reset</a></li>
+              </ul>
+            </div>          
           </div>
-          <div id="noRegionsExample">
-            <p>You have not yet created any regions. [<a class="addRegion" href="#">Add Region</a>]</p>
+          <div class="well">
+            <h2>Regions</h2>
+            <div id="regionsExample">
+            </div>
+            <div id="noRegionsExample">
+              <p>You have not yet created any regions. [<a class="addRegion" href="#">Add Region</a>]</p>
+            </div>
+            <div style="clear:both;"></div>
+          </div>
+        </div>
+      </div>
+      </form>
+
+    <!-- Modal -->
+    <div class="modal fade" id="colorPicker" tabindex="-1" role="dialog" aria-labelledby="colorPickerLabel">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title" id="colorPickerLabel">Choose Color</h4>
+          </div>
+          <div class="modal-body">
           </div>
         </div>
       </div>
     </div>
-    </form>
+
     </div>
-    <script language="javascript" src="assets/jquery.min.js"></script>
+    <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
     <script language="javascript" src="assets/json2.js"></script>
     <script src="assets/bootstrap.min.js"></script>
     <script language="javascript" src="jquery.canvasAreaDraw.js"></script>
     <script>
     $(document).ready(function(){
+
+      var colors = ['#F0F8FF','#FAEBD7','#00FFFF','#7FFFD4','#F0FFFF','#F5F5DC','#FFE4C4','#000000','#FFEBCD','#0000FF','#8A2BE2','#A52A2A','#DEB887','#5F9EA0','#7FFF00','#D2691E','#FF7F50','#6495ED','#FFF8DC','#DC143C','#00FFFF','#00008B','#008B8B','#B8860B','#A9A9A9','#006400','#BDB76B','#8B008B','#556B2F','#FF8C00','#9932CC','#8B0000','#E9967A','#8FBC8F','#483D8B','#2F4F4F','#00CED1','#9400D3','#FF1493','#00BFFF','#696969','#1E90FF','#B22222','#FFFAF0','#228B22','#FF00FF','#DCDCDC','#F8F8FF','#FFD700','#DAA520','#808080','#008000','#ADFF2F','#F0FFF0','#FF69B4','#CD5C5C','#4B0082','#FFFFF0','#F0E68C','#E6E6FA','#FFF0F5','#7CFC00','#FFFACD','#ADD8E6','#F08080','#E0FFFF','#FAFAD2','#D3D3D3','#90EE90','#FFB6C1','#FFA07A','#20B2AA','#87CEFA','#778899','#B0C4DE','#FFFFE0','#00FF00','#32CD32','#FAF0E6','#FF00FF','#800000','#66CDAA','#0000CD','#BA55D3','#9370DB','#3CB371','#7B68EE','#00FA9A','#48D1CC','#C71585','#191970','#F5FFFA','#FFE4E1','#FFE4B5','#FFDEAD','#000080','#FDF5E6','#808000','#6B8E23','#FFA500','#FF4500','#DA70D6','#EEE8AA','#98FB98','#AFEEEE','#DB7093','#FFEFD5','#FFDAB9','#CD853F','#FFC0CB','#DDA0DD','#B0E0E6','#800080','#663399','#FF0000','#BC8F8F','#4169E1','#8B4513','#FA8072','#F4A460','#2E8B57','#FFF5EE','#A0522D','#C0C0C0','#87CEEB','#6A5ACD','#708090','#FFFAFA','#00FF7F','#4682B4','#D2B48C','#008080','#D8BFD8','#FF6347','#40E0D0','#EE82EE','#F5DEB3','#FFFFFF','#F5F5F5','#FFFF00','#9ACD32'];
+
+      $colorCells = $('<div class="row"></div>');
+      for(i in colors){
+        $colorCells.append('<a data-color="' + colors[i] + '" class="selectColor col-md-1" style="cursor:pointer;height:20px;background-color:'+colors[i]+'"></a>');
+      }
+      $('#colorPicker .modal-body').append($colorCells);
+
+      var defaultColor = '#ff0000';
+
       $('textarea#example').canvasAreaDraw({
         imageUrl: "assets/6956772778_2fa755a228.jpg",
         sensitivity: 24,
         rectWidth: 4,
         lineWidth: 1,
-        resetSelector: 'a#resetExample',
-        addRegionSelector: 'a.addRegion',
-        regionsSelector: 'div#regionsExample',
-        noRegionsSelector: 'div#noRegionsExample',
         initialRegions: 0,
-        regionButtonCallback: function(region_id) {
-          return '<a href="#">Region #1.' + region_id + '</a>';
-        }
+        defaultColor: defaultColor
       });
-      $('textarea#example').canvasAreaDraw('addRegion');
+
+      $('textarea#example').bind('regionAdded',function(ev){
+        var region_id = ev.region_id;
+        var $regionSelector = $('<a data-region-id="' + region_id + '" class="regionSelector btn btn-default">Region 1.' + region_id + '</a>');
+        var $regionDelete = $('<a data-region-id="' + region_id + '" class="regionDelete"><small>Delete</small></a>');
+        var $regionColor = $('<div style="background-color:' + $('textarea#example').canvasAreaDraw('getRegionColor',region_id) + ';float:right;margin-top:5px;width:10px;height:10px;border:1px solid black;" data-region-id="' + region_id + '" class="regionColor"></div>');
+        var $cell = $('<div data-region-id="' + region_id + '" class="regionControls pull-left" style="margin-right:3px;"></div>');
+        $cell.append($regionSelector,'<br />',$regionDelete, $regionColor);
+
+        $regionColor.click(function(){
+          $('textarea#example').canvasAreaDraw('selectRegion',region_id);
+          $('#colorPicker').modal();
+        });
+
+        $regionSelector.click(function(){
+          $('textarea#example').canvasAreaDraw('selectRegion',region_id);
+        });
+        $regionDelete.click(function(){
+          if(confirm('Are you sure?')){
+            $('textarea#example').canvasAreaDraw('removeRegion',region_id);
+          }
+        });
+        $('#regionsExample').append($cell);
+      });
+
+      $('textarea#example').bind('regionRemoved',function(ev){
+        var region_id = ev.region_id;
+        $('.regionControls[data-region-id="' + region_id + '"]').remove();
+      });
+
+      $('textarea#example').bind('regionColorSet',function(ev){
+        var region_id = ev.region_id;
+        var color = ev.color_code;
+        $('.regionColor[data-region-id="' + region_id + '"]').css('background-color',color);
+      });
+
+      $('textarea#example').bind('regionSelected',function(ev){
+        var region_id = ev.region_id;
+        $('.regionSelector.btn-primary').removeClass('btn-primary').addClass('btn-default');
+        $('.regionSelector[data-region-id="' + region_id + '"]').removeClass('btn-default').addClass('btn-primary');
+      });
+
+      $('textarea#example').bind('regionSelected',function(ev){
+        var region_id = ev.region_id;
+        $('.regionSelector.btn-primary').removeClass('btn-primary').addClass('btn-default');
+        $('.regionSelector[data-region-id="' + region_id + '"]').removeClass('btn-default').addClass('btn-primary');
+      });
+
+      $('textarea#example').bind('drawingFinished',function(ev){
+          if($('textarea#example').canvasAreaDraw('getNumberOfRegions')==0)
+            $('#noRegionsExample').show();
+      });
+
+      $('.selectColor').click(function(){
+        var colorCode = $(this).data('color');
+        $('textarea#example').canvasAreaDraw(
+          'setRegionColor',
+          $('textarea#example').canvasAreaDraw('getActiveRegion'),
+          colorCode
+        );
+        $('#colorPicker').modal('hide');
+      })
+
+      $('.addRegion').click(function(){
+        $('#noRegionsExample').hide();
+        $('#colorPicker').modal();
+        var region_id = $('textarea#example').canvasAreaDraw('addRegion');
+      });
+
+      $('#resetExample').click(function(){
+          $('#regionsExample').empty();
+          $('textarea#example').canvasAreaDraw('reset');
+      });
+
     });
     </script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
   </body>
 </html>
