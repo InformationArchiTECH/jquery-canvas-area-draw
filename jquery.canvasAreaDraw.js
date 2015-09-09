@@ -235,8 +235,6 @@
      */
     record = function() { 
       var allData = {'points' : points, 'metadata' : metadata};
-      console.log('record');
-      console.log(allData);
       $(input).val(JSON.stringify(allData));
       $(input).trigger({
         type: "pointDataChange",
@@ -313,6 +311,9 @@
      * Public methods
      */
 
+     /**
+      * Set Region Color
+      */
      this.setRegionColor = function(region_id,color_code) {
       metadata[region_id]['color'] = color_code;
       $(input).trigger({
@@ -323,11 +324,46 @@
       draw();
      }
 
+     /**
+      * Get Region Color
+      */
      this.getRegionColor = function(region_id) {
       if(typeof(metadata[region_id])!='undefined' && metadata[region_id]['color'] != 'undefined'){
         return metadata[region_id]['color'];
       } else {
         return settings.defaultColor;
+      }
+     }
+
+     /** 
+      * Get Metadata about a region
+      */
+     this.getMetadata = function(region_id) {
+      if(typeof(points[region_id])=='undefined'){
+        console.log('No region matching region_id: ' + region_id);
+      } else {
+        if(typeof(metadata[region_id])=='undefined'){
+          return {};
+        } else {
+          return metadata[region_id];
+        }
+      }
+     }
+
+     /** 
+      * Get Metadata about a region
+      */
+     this.setMetadata = function(region_id,metadataobj) {
+      if(typeof(points[region_id])=='undefined'){
+        console.log('No region matching region_id: ' + region_id);
+      } else {
+        metadata[region_id] = metadataobj;
+        $(input).trigger({
+          type: "metadataAdded",
+          region_id : region_id,
+          metadata : metadataobj
+        });
+        draw();
       }
      }
 
@@ -404,6 +440,10 @@
     }
 
     this.getNumberOfRegions = function() {
+      var numRegions = 0;
+      for(i in points){
+        numRegions++;
+      }
       return numRegions;
     }
 

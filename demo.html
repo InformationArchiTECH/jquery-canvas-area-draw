@@ -14,7 +14,7 @@
     <form>
       <div class="row">
         <div class="col-md-6">
-          <textarea id="example">{"points":{"0":[126,209,124,139,232,145,211,239],"1":[156,314,152,376,272,386,273,317],"2":[77,63,81,101,173,97,183,50]},"metadata":{"0":{"color":"#FF0000"},"1":{"color":"#ADFF2F"},"2":{"color":"#9400D3"}}}</textarea>
+          <textarea id="example">{"points":{"0":[126,209,124,139,232,145,211,239],"1":[156,314,152,376,272,386,273,317],"2":[77,63,81,101,173,97,183,50],"3":[]},"metadata":{"0":{"color":"#FF0000"},"1":{"color":"#ADFF2F"},"2":{"color":"#9400D3"},"3":{"nickname":"Homeboy","color":"#696969"}}}</textarea>
         </div>
         <div class="col-md-6">
           <div class="well">
@@ -80,10 +80,25 @@
         defaultColor: defaultColor
       });
 
+      $('textarea#example').bind('metadataAdded',function(ev){
+        var region_id = ev.region_id;
+        var metadata = $('textarea#example').canvasAreaDraw('getMetadata',region_id);
+        if(typeof(metadata['nickname'])!='undefined'){
+          var title = metadata['nickname'];
+          $('a.regionSelector[data-region-id="' + region_id + '"]').html(title);
+        }
+      });
+
       $('textarea#example').bind('regionAdded',function(ev){
         var region_id = ev.region_id;
-        var $regionSelector = $('<a data-region-id="' + region_id + '" class="regionSelector btn btn-default">Region 1.' + region_id + '</a>');
-        var $regionDelete = $('<a data-region-id="' + region_id + '" class="regionDelete"><small>Delete</small></a>');
+        var metadata = $('textarea#example').canvasAreaDraw('getMetadata',region_id);
+        if(typeof(metadata['nickname'])!='undefined'){
+          var title = metadata['nickname'];
+        } else {
+          var title = 'Region 1.' + region_id;
+        }
+        var $regionSelector = $('<a data-region-id="' + region_id + '" class="regionSelector btn btn-default">' + title + '</a>');
+        var $regionDelete = $('<a data-region-id="' + region_id + '" style="cursor:pointer;" class="regionDelete"><small>Delete</small></a>');
         var $regionColor = $('<div style="background-color:' + $('textarea#example').canvasAreaDraw('getRegionColor',region_id) + ';float:right;margin-top:5px;width:10px;height:10px;border:1px solid black;" data-region-id="' + region_id + '" class="regionColor"></div>');
         var $cell = $('<div data-region-id="' + region_id + '" class="regionControls pull-left" style="margin-right:3px;"></div>');
         $cell.append($regionSelector,'<br />',$regionDelete, $regionColor);
@@ -130,7 +145,9 @@
       $('textarea#example').bind('drawingFinished',function(ev){
           if($('textarea#example').canvasAreaDraw('getNumberOfRegions')==0)
             $('#noRegionsExample').show();
-      });
+          else
+            $('#noRegionsExample').hide();
+      });    
 
       $('.selectColor').click(function(){
         var colorCode = $(this).data('color');
@@ -144,8 +161,14 @@
 
       $('.addRegion').click(function(){
         $('#noRegionsExample').hide();
+        var nickname = prompt('Enter a nickname for this region:');
         $('#colorPicker').modal();
         var region_id = $('textarea#example').canvasAreaDraw('addRegion');
+        if(nickname){
+          var metadata = $('textarea#example').canvasAreaDraw('getMetadata',region_id);
+          metadata['nickname'] = nickname;
+          $('textarea#example').canvasAreaDraw('setMetadata',region_id,metadata);
+        }
       });
 
       $('#resetExample').click(function(){
