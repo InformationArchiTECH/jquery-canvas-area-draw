@@ -1,19 +1,22 @@
 (function( $ ){
 
   $.fn.canvasAreaDraw = function(options) {
+    var args = Array.prototype.slice.call(arguments, 1);
     this.each(function(index, element) {
-      init.apply(element, [index, element, options]);
+      instance = $(element).data('canvasAreaDraw');
+      if(!instance){
+        $(element).data('canvasAreaDraw',init.apply(element, [index, element, options]));
+      } else {
+        if(typeof options === 'string') {
+            instance[options].apply(instance, args);
+        }
+      }
     });
-    return this;
   }
 
+  var init = function(index, input, options) { 
 
-
-  var init = function(index, input, options) {
-
-    this.test = function(){
-      alert('ok');
-    }    
+    var thisInstance = this;
 
     var colors, points, activePoint, settings, activeRegion, maxRegion, numRegions = 0;
     var $addRegion, $reset, $regions, $canvas, ctx, image;
@@ -83,7 +86,7 @@
       draw();
     };
 
-    addRegion = function(region) {
+    this.addRegion = function() {
 
       numRegions++;
 
@@ -124,7 +127,7 @@
       maxRegion = (-1);
       numRegions = 0;
       for(i=0;i<settings.initialRegions;i++)
-        addRegion();
+        thisInstance.addRegion();
       if(settings.noRegionsSelector && numRegions==0){
         $(settings.noRegionsSelector).show();
       }        
@@ -284,10 +287,10 @@
 
       if(Object.keys(points).length > 0)
         for(region in points)
-          addRegion();
+          thisInstance.addRegion();
       else
         for(i=0;i<settings.initialRegions;i++)
-          addRegion(); 
+          thisInstance.addRegion(); 
 
       if(settings.noRegionsSelector && numRegions==0){
         $(settings.noRegionsSelector).show();
@@ -302,7 +305,9 @@
         $(input).after($regions);
 
       $reset.click(reset);
-      $addRegion.click(addRegion);
+
+      $addRegion.click(self.addRegion);
+
       $canvas.on('mousedown touchstart', mousedown);
       $canvas.on('contextmenu', rightclick);
       $canvas.on('mouseup touchend', stopdrag);
@@ -319,7 +324,7 @@
       draw();
     });
 
-    return this;
+    return this; //end init
 
   };
 
